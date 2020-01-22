@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+ 
+  <style>
+    html, body { height: 100%; margin: 0;
+     }
+    body { background: Black; display: flex; align-items: center; justify-content: space-around;
+    
+     background-repeat: no-repeat;
+     background-size: cover; }
+    canvas { border: 5px solid pink;
+     
+     background-repeat: no-repeat;
+     }
+  </style>
+  <h1 style="color: red"><strong>SNAKE &nbsp GAME</strong></h1>
+</head>
+<body>
+<canvas width="400" height="400" id="game"></canvas>
+<label style="color: green" ><b><font size ="4"> SCORE: </b><label id="count">0</label><br><br><br>
+<label style="color: green" ><b><font size = "4"> HIGH SCORE: </b><label id="max">0</label></label>
+
+<script>
+var canvas = document.getElementById('game');
+var count= document.getElementById('count');
+var context = canvas.getContext('2d');
+var grid = 16;
+var count = 0;
+let dx=0 , dy=0 ;
+var scoree=[];
+var id=1;
+var max=0;
+var lastmove='right';
+var paused=false;
+
+var snake = 
+{
+  x : 160,
+  y : 160 ,
+ cells : [{x:160 , y:160} , {x:144 , y:160}, {x:128 , y:160}] ,
+};
+
+window.addEventListener("load",function(event){
+  scoree = getStoredScoreInArray();
+
+
+ 
+    id = scoree[scoree.length-1].pdtid + 1;
+  
+
+
+  for(var x=0 ;x<scoree.length ;x++)
+  {
+   
+    if(scoree[x].pdtscore>max)
+    {
+      max=scoree[x].pdtscore;
+      document.getElementById("max").innerHTML = max; 
+    }
+  } // function for getting the maximum and sendig the maximum storage to the LOcal  storage
+  
+  
+});
+
+
+var apple = {
+  x: 0,
+  y: 0
+};
+setAppleCoordinate();
+
+function setAppleCoordinate(){
+  apple.x = 32*Math.floor((Math.random()*10));
+  apple.y = 32*Math.floor((Math.random()*10));
+}
+
+// draw apple
+function drawApple()
+{
+  context.fillStyle = 'red';
+context.beginPath();
+  context.arc(apple.x+grid/2, apple.y+grid/2, grid/2,0, 2*Math.PI); 
+  context.fill();
+}
+drawApple();
+
+// draw snake
+function drawSnake()
+{
+  context.fillStyle = 'green';
+  for(let i=0 ; i<snake.cells.length ; i++) {
+    context.beginPath();
+  context.arc(snake.cells[i].x+grid/2, snake.cells[i].y+grid/2, grid/2,0, 2*Math.PI); 
+  context.fill();
+  }
+}
+drawSnake();  
+
+function moveSnake( dx , dy)
+{ 
+   snake.x += dx ;
+  snake.y += dy ;
+ if(snake.x==400 || snake.y==400)
+{
+  window.alert("GAME IS OVER, YOUR SCORE IS: "+count);
+  addtolocal();
+  document.location.reload() ;
+} 
+else if(snake.x<0 || snake.y<0 )
+{
+  window.alert("GAME IS OVER, YOUR SCORE IS: "+count);
+  addtolocal();
+  document.location.reload() ;
+}
+else if(snake.x==apple.x && snake.y==apple.y)
+{
+  
+  snake.cells.unshift({x: snake.x , y: snake.y}) ; // Insert at 0th position
+  //snake.cells.pop();  // remove the last element
+  setAppleCoordinate();
+  count = count+5;
+   document.getElementById("count").innerHTML=count;
+  drawSnake();
+}
+else if(snakeeatitself()==true)
+{
+  window.alert("GAME IS OVER, YOUR SCORE IS: "+count);
+      addtolocal();
+  document.location.reload() ;
+}
+else
+{
+  snake.cells.unshift({x: snake.x , y: snake.y}) ; // Insert at 0th position
+  snake.cells.pop();  // remove the last element
+  drawSnake();
+}
+}
+
+
+
+// listen to keyboard events to move the snake
+
+function addtolocal()
+{
+ var score = new Object();
+  score.pdtid=id;
+  score.pdtscore = count;
+scoree.push(score);
+storeScoreInLocal(scoree);
+id++;
+
+}
+function snakeeatitself()
+{
+  for(let i=4 ;i<snake.cells.length ;i++)
+  {
+    if(snake.x==snake.cells[i].x && snake.y == snake.cells[i].y)
+    {
+     return true;
+    }
+  }
+  return false;
+}
+
+
+
+document.addEventListener('keydown', function(e) 
+{
+  
+  // left arrow key
+  if (e.keyCode == 37 && lastmove!='right') 
+  {
+    dx = -grid;
+    dy = 0;
+    lastmove='left';
+  }
+   // up arrow key
+  else if (e.keyCode == 38 && lastmove!='down') 
+  {
+    dy = -grid;
+    dx = 0;
+    lastmove='up';
+  }
+   // right arrow key
+  else if (e.keyCode == 39  && lastmove!='left') 
+  {
+    dx = grid;
+    dy = 0;
+    lastmove='right';
+  }
+   // down arrow key
+  else if (e.keyCode == 40 && lastmove!='up') 
+  {
+    dy = grid;
+    dx = 0;
+    lastmove='down';
+  }
+  context.clearRect(0, 0, canvas.width,canvas.height);// Clear the Canvas
+  moveSnake(dx,dy);
+  drawApple();
+  snakeeatitsellf()
+});
+
+var interval=setInterval(function() {
+  context.clearRect(0, 0, canvas.width,canvas.height);// Clear the Canvas
+  moveSnake(dx,dy);
+  drawSnake();
+  drawApple();
+},100);
+
+function storeScoreInLocal(scoree){
+    localStorage.scoree = JSON.stringify(scoree);
+}
+
+function getStoredScoreInArray() {
+    if(localStorage.scoree){
+    return JSON.parse(localStorage.scoree);}
+    else {
+      storeScoreInLocal([]);
+      return [];
+    }
+}
+
+document.addEventListener('keydown',(event)=> {
+    if(event.keyCode==13) {
+      if(!paused)
+      {
+        clearInterval(interval);
+        paused = true;
+      }
+      else {
+                paused = false;
+                interval=setInterval(function() {
+          context.clearRect(0, 0, canvas.width,canvas.height);// Clea
+          moveSnake(dx,dy);
+          drawSnake();
+          drawApple();
+        },100);
+
+      }
+
+    }
+});
+
+</script>
+</body>
+</html>
